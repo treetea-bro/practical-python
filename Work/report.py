@@ -4,47 +4,45 @@
 
 import csv
 import tableformat
+from stock import Stock
+from typing import List
 
 
-def read_portfolio(iterable):
+def read_portfolio(portfolio_filename: str) -> List[Stock]:
     """
     Read a stock portfolio file into a list of dictionaries with keys
     name, shares, and price.
     """
     portfolio = []
-
-    rows = csv.reader(iterable)
-    headers = next(rows)
-    for row in rows:
-        record = dict(zip(headers, row))
-        stock = {
-            "name": record["name"],
-            "shares": int(record["shares"]),
-            "price": float(record["price"]),
-        }
-        portfolio.append(stock)
+    with open(portfolio_filename) as f:
+        rows = csv.reader(f)
+        next(rows)
+        for row in rows:
+            s = Stock(row[0], int(row[1]), float(row[2]))
+            portfolio.append(s)
     return portfolio
 
 
-def read_prices(iterable):
+def read_prices(prices_filename: str) -> dict:
     dic = {}
-    rows = csv.reader(iterable)
-    for i, row in enumerate(rows, start=1):
-        try:
-            dic[row[0]] = float(row[1])
-        except:
-            pass
+    with open(prices_filename) as f:
+        rows = csv.reader(f)
+        for row in rows:
+            try:
+                dic[row[0]] = float(row[1])
+            except:
+                pass
     return dic
 
 
-def make_report(portfolio, prices):
+def make_report(portfolio: List[Stock], prices):
     for row in portfolio:
-        if row["name"] in prices:
+        if row.name in prices:
             yield (
-                row["name"],
-                row["shares"],
-                prices[row["name"]],
-                round(prices[row["name"]] - row["price"], 2),
+                row.name,
+                row.shares,
+                prices[row.name],
+                round(prices[row.name] - row.price, 2),
             )
 
 
@@ -56,10 +54,8 @@ def print_report(reportdata, formatter):
 
 
 def portfolio_report(portfolio_filename, prices_filename, fmt):
-    with open(portfolio_filename) as f:
-        portfolio = read_portfolio(f)
-    with open(prices_filename) as f:
-        prices = read_prices(f)
+    portfolio = read_portfolio(portfolio_filename)
+    prices = read_prices(prices_filename)
     report = make_report(portfolio, prices)
     formatter = tableformat.create_formatter(fmt)
     print_report(report, formatter)

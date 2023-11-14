@@ -1,13 +1,3 @@
-def create_formatter(fmt):
-    match fmt:
-        case "txt":
-            return TextTableFormatter()
-        case "csv":
-            return CSVTableFormatter()
-        case "html":
-            return HTMLTableFormatter()
-
-
 class TableFormatter:
     def headings(self, headers):
         """
@@ -29,13 +19,13 @@ class TextTableFormatter(TableFormatter):
 
     def headings(self, headers):
         for h in headers:
-            print(f"{h:>10s}", end=" ")
+            print(f"{h:>10}", end=" ")
         print()
         print(("-" * 10 + " ") * len(headers))
 
     def row(self, rowdata):
         for d in rowdata:
-            print(f"{d:>10s}", end=" ")
+            print(f"{d:>10}", end=" ")
         print()
 
 
@@ -67,3 +57,28 @@ class HTMLTableFormatter(TableFormatter):
         for h in rowdata:
             print(f"<td>{h}</td>", end="")
         print("</tr>")
+
+
+class FormatError(Exception):
+    pass
+
+
+def create_formatter(fmt) -> TableFormatter:
+    match fmt:
+        case "txt":
+            return TextTableFormatter()
+        case "csv":
+            return CSVTableFormatter()
+        case "html":
+            return HTMLTableFormatter()
+        case _:
+            raise FormatError(f"Unkown table format {fmt}")
+
+
+def print_table(stocks, cols, formatter: TableFormatter):
+    formatter.headings(cols)
+    for stock in stocks:
+        row = []
+        for col in cols:
+            row.append(getattr(stock, col))
+        formatter.row(row)
