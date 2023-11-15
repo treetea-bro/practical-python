@@ -6,21 +6,22 @@ import csv
 import tableformat
 from stock import Stock
 from typing import List
+import fileparse
+from portfolio import Portfolio
 
 
-def read_portfolio(portfolio_filename: str) -> List[Stock]:
+def read_portfolio(filename: str) -> Portfolio:
     """
     Read a stock portfolio file into a list of dictionaries with keys
     name, shares, and price.
     """
-    portfolio = []
-    with open(portfolio_filename) as f:
-        rows = csv.reader(f)
-        next(rows)
-        for row in rows:
-            s = Stock(row[0], int(row[1]), float(row[2]))
-            portfolio.append(s)
-    return portfolio
+    with open(filename) as file:
+        portdicts = fileparse.parse_csv(
+            file, select=["name", "shares", "price"], types=[str, int, float]
+        )
+
+    portfolio = [Stock(d["name"], d["shares"], d["price"]) for d in portdicts]
+    return Portfolio(portfolio)
 
 
 def read_prices(prices_filename: str) -> dict:
@@ -46,11 +47,11 @@ def make_report(portfolio: List[Stock], prices):
             )
 
 
-def print_report(reportdata, formatter):
-    formatter.headings(["Name", "Shares", "Price", "Change"])
-    for name, shares, price, change in reportdata:
-        rowdata = [name, str(shares), f"{price:0.2f}", f"{change:0.2f}"]
-        formatter.row(rowdata)
+def print_report(reportdata, cols, formatter):
+    formatter.headings(cols)
+    for rowdata in reportdata:
+        # rowdata = [name, str(shares), f"{price:0.2f}", f"{change:0.2f}"]
+        formatter.row(rowdata[col] for col in cols)
 
 
 def portfolio_report(portfolio_filename, prices_filename, fmt):
@@ -58,7 +59,7 @@ def portfolio_report(portfolio_filename, prices_filename, fmt):
     prices = read_prices(prices_filename)
     report = make_report(portfolio, prices)
     formatter = tableformat.create_formatter(fmt)
-    print_report(report, formatter)
+    print_report(report, ["Name", "Shares", "Price", "Change"], formatter)
 
 
 def main(

@@ -1,28 +1,18 @@
 # pcost.py
 #
 # Exercise 1.27
-import csv
 import sys
-from stock import Stock
+import report
 
 
-def portfolio_cost(iterable):
+def portfolio_cost(filename):
     """Computes the total cost (shares*price) of a portfolio file"""
-    total_cost = 0.0
-
-    rows = csv.reader(iterable)
-    headers = next(rows)
-    types = [str, int, float]
-    for row in rows:
-        name, shares, price = (func(el) for func, el in zip(types, row))
-        s = Stock(name=name, shares=shares, price=price)
-        total_cost += s.shares * s.price
-    return total_cost
+    portfolio = report.read_portfolio(filename)
+    return portfolio.total_cost
 
 
 def main(filename):
-    with open(filename, "rt") as f:
-        cost = portfolio_cost(f)
+    cost = portfolio_cost(filename)
     print("Total cost:", cost)
 
 
