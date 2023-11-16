@@ -1,10 +1,9 @@
-w = [[1, 2, 3, 4]]
+class Foo(object):
+    a = 123
+
+    @staticmethod
+    def bar(x):
+        print(x)
 
 
-def a(w):
-    for i in w:
-        yield i
-
-
-print(id(w[0]))
-print(id(next(a(w))))
+print(Foo.bar(2))

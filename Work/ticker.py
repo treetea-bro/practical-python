@@ -31,7 +31,7 @@ def ticker(portfile, logfile, fmt):
     producer = follow(logfile)
     rows = parse_stock_data(producer)
     portfolio = report.read_portfolio(portfile)
-    rows = (row for row in rows if row["name"] in portfolio)
+    rows = (row.values() for row in rows if row["name"] in portfolio)
     s = tableformat.create_formatter(fmt)
     report.print_report(rows, ["name", "price", "change"], s)
 

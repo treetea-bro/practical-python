@@ -1,12 +1,11 @@
-# fileparse.py
-#
-# Exercise 3.3
-
 import csv
+from icecream import ic
+
+ic.configureOutput(includeContext=True)
 
 
 def parse_csv(
-    filename,
+    lines,
     select=None,
     types=None,
     has_headers=True,
@@ -14,39 +13,42 @@ def parse_csv(
     silence_errors=False,
 ):
     """
-    Parse a CSV file into a list of records
+    Parse a CSV file into a list of records with type conversion.
     """
-
     if select and not has_headers:
-        raise RuntimeError("select argument requires column headers")
+        raise RuntimeError("select requires column headers")
 
-    rows = csv.reader(filename, delimiter=delimiter)
+    rows = csv.reader(lines, delimiter=delimiter)
 
-    if has_headers:
-        headers = next(rows)
-    else:
-        select = None
+    # Read the file headers (if any)
+    headers = next(rows) if has_headers else []
 
+    # If specific columns have been selected, make indices for filtering and set output columns
     if select:
         indices = [headers.index(colname) for colname in select]
         headers = select
-    else:
-        indices = []
 
     records = []
-    for i, row in enumerate(rows, start=1):
-        if not row:
+    for rowno, row in enumerate(rows, 1):
+        if not row:  # Skip rows with no data
             continue
-        if indices:
+
+        # If specific column indices are selected, pick them out
+        if select:
             row = [row[index] for index in indices]
+
+        # Apply type conversion to the row
         if types:
             try:
                 row = [func(val) for func, val in zip(types, row)]
             except ValueError as e:
                 if not silence_errors:
-                    print(f"Row {i}: Couldn't convert {row}")
-                    print(f"Row {i}: Reason {e}")
-        if has_headers:
+                    ic(f"Row {rowno}: Couldn't convert {row}")
+                    ic(f"Row {rowno}: Reason {e}")
+                continue
+
+        # Make a dictionary or a tuple
+        if headers:
             record = dict(zip(headers, row))
         else:
             record = tuple(row)
